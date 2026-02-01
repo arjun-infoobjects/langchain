@@ -1,0 +1,76 @@
+* {
+    margin: 0;
+    padding: 0;
+    
+}
+
+h1 {
+    text-align: center;
+    margin-top: 80px;
+}
+
+.input-box {
+    width: 800px;
+    border: 2px solid black;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    border-radius: 50px;
+    gap: 70px;
+}
+
+.input-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 60px;
+    width: 100vw;
+}
+
+.input-box input {
+    width: 600px;
+    margin-left: 40px;
+    font-size: 16px;
+    border: none;
+}
+
+.input-box button {
+    background-color: black;
+    color: white;
+    border-radius: 50px;
+    border: none;
+    
+}
+
+.input-box button:hover {
+    cursor: pointer;
+    background-color: rgb(59, 58, 58);
+}
+
+.data-container {
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+}
+
+.data-content {
+    width: 700px;
+    background-color: rgba(156, 211, 234, 0.4);
+    color: black;
+    height: 45px;
+    padding-left: 20px;
+    display: flex;
+    align-items: center;
+    border-radius: 10px;
+}
+
+.data-content-rejected {
+    width: 700px;
+    background-color: red;
+    color: white;
+    height: 45px;
+    padding-left: 20px;
+    display: flex;
+    align-items: center;
+    border-radius: 10px;
+}
