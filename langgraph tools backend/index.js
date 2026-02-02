@@ -46,7 +46,7 @@ app.post("/api/data", async (req, res) => {
             }
         );
 
-        // 🌦️ Weather Tool
+        
         const weatherTool = tool(
             async ({ city }) => {
                 
@@ -66,31 +66,25 @@ app.post("/api/data", async (req, res) => {
 
         const tools = [addTool, weatherTool];
 
-        // =====================
-        // 2️⃣ MODEL
-        // =====================
+        
         const model = new ChatGoogleGenerativeAI({
             apiKey: process.env.GOOGLE_API_KEY,
-            model: "gemini-2.5-flash", // fast & cheap
+            model: "gemini-2.5-flash", 
             temperature: 0,
         }).bindTools(tools);
 
-        // =====================
-        // 3️⃣ FALLBACK CHECK NODE
-        // =====================
+        
         function shouldReject(state) {
             const lastMsg = state.messages[state.messages.length - 1];
 
-            // If model didn't call a tool → reject
+            
             if (!lastMsg.tool_calls || lastMsg.tool_calls.length === 0) {
                 return "reject";
             }
             return "tools";
         }
 
-        // =====================
-        // 4️⃣ REJECTION NODE
-        // =====================
+        
         async function rejectNode(state) {
             isReject = true;
             return {
@@ -100,9 +94,7 @@ app.post("/api/data", async (req, res) => {
             };
         }
 
-        // =====================
-        // 5️⃣ GRAPH BUILDING
-        // =====================
+        
         const toolNode = new ToolNode(tools);
 
         const graph = new StateGraph(MessagesAnnotation)
@@ -113,13 +105,11 @@ app.post("/api/data", async (req, res) => {
             .addNode("tools", toolNode)
             .addNode("reject", rejectNode)
             .addConditionalEdges("agent", shouldReject)
-            .addEdge("tools", "agent") // After tool runs, return to agent
+            .addEdge("tools", "agent") 
             .setEntryPoint("agent")
             .compile();
 
-        // =====================
-        // 6️⃣ CHAT LOOP
-        // =====================
+        
         async function chat(userInput) {
             
             const result = await graph.invoke({
@@ -131,9 +121,7 @@ app.post("/api/data", async (req, res) => {
             return finalMessage.content;
         }
 
-        // =====================
-        // 7️⃣ TEST
-        // =====================
+        
         const llmResponse = await chat(req.body.query);
         console.log("llmResponse :", llmResponse);
         console.log("isReject :", isReject);
