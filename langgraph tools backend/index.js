@@ -8,6 +8,7 @@ import {ChatGoogleGenerativeAI} from "@langchain/google-genai";
 import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
+import { SystemMessage } from "@langchain/core/messages";
 
 
 
@@ -29,8 +30,8 @@ app.listen(PORT, () => {
 });
 
 app.post("/api/data", async (req, res) => {
-    console.log("POST request executed.");
     console.log(req.body);
+    console.log("POST request executed.");
     let isReject = false;
         const addTool = tool(
             async ({ a, b }) => {
@@ -75,13 +76,31 @@ app.post("/api/data", async (req, res) => {
 
         
         function shouldReject(state) {
-            const lastMsg = state.messages[state.messages.length - 1];
+            // const lastMsg = state.messages[state.messages.length - 1];
 
             
-            if (!lastMsg.tool_calls || lastMsg.tool_calls.length === 0) {
+            // if (!lastMsg.tool_calls || lastMsg.tool_calls.length === 0) {
+            //     return "reject";
+            // }
+            // return "tools";
+
+
+
+
+
+
+            const lastMsg = state.messages[state.messages.length - 1];
+
+            const toolCalls =
+                lastMsg.tool_calls ??
+                lastMsg.additional_kwargs?.tool_calls;
+
+            if (!toolCalls || toolCalls.length === 0) {
                 return "reject";
             }
+
             return "tools";
+
         }
 
         
@@ -111,9 +130,16 @@ app.post("/api/data", async (req, res) => {
 
         
         async function chat(userInput) {
+            const systemPrompt = new SystemMessage(`
+                You are an agent that can ONLY do two things:
+                1. Add two numbers using the add_numbers tool
+                2. Get weather for a city using the get_weather tool
+
+                If the user asks anything else, do NOT call any tool.
+                `);
             
             const result = await graph.invoke({
-                messages: [new HumanMessage(userInput)],
+                messages: [systemPrompt, new HumanMessage(userInput),],
             });
 
             const finalMessage = result.messages[result.messages.length - 1];

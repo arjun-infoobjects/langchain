@@ -15,8 +15,9 @@ const AdditionAndWeather =  () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         const result = await axios.post("http://localhost:8000/api/data", queryData);
-        setAIData(result.llmResponse);
-        setReject(result.isReject);
+        
+        setAIData(result.data.llmResponse);
+        setReject(result.data.isReject);
         setFlag(true);
         setQueryData({...queryData, query: ""});
     }
