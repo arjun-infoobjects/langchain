@@ -2,6 +2,7 @@ import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 import axios from "axios";
 import { StateGraph, MessagesAnnotation } from "@langchain/langgraph";
+
 import { ToolNode } from "@langchain/langgraph/prebuilt";
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import {ChatGoogleGenerativeAI} from "@langchain/google-genai";
@@ -76,30 +77,23 @@ app.post("/api/data", async (req, res) => {
 
         
         function shouldReject(state) {
-            // const lastMsg = state.messages[state.messages.length - 1];
-
-            
-            // if (!lastMsg.tool_calls || lastMsg.tool_calls.length === 0) {
-            //     return "reject";
-            // }
-            // return "tools";
-
-
-
-
-
-
             const lastMsg = state.messages[state.messages.length - 1];
+            console.log("DEBUG shouldReject lastMsg:", lastMsg);
 
             const toolCalls =
                 lastMsg.tool_calls ??
-                lastMsg.additional_kwargs?.tool_calls;
+                lastMsg.tool_call ??
+                lastMsg.additional_kwargs?.tool_calls ??
+                lastMsg.additional_kwargs?.tool_call ??
+                lastMsg.additional_kwargs?.llm_output?.tool_calls ??
+                lastMsg.additional_kwargs?.llm_output?.tool_call;
 
-            if (!toolCalls || toolCalls.length === 0) {
-                return "reject";
-            }
+            console.log("DEBUG detected toolCalls:", toolCalls);
 
-            return "tools";
+            if (!toolCalls) return "reject";
+            if (Array.isArray(toolCalls) && toolCalls.length === 0) return "reject";
+            if (typeof toolCalls === "object") return "tools";
+            return "reject";
 
         }
 
@@ -119,6 +113,8 @@ app.post("/api/data", async (req, res) => {
         const graph = new StateGraph(MessagesAnnotation)
             .addNode("agent", async (state) => {
                 const response = await model.invoke(state.messages);
+                console.log("DEBUG agent response:", response);
+                console.log("DEBUG response.additional_kwargs:", response?.additional_kwargs);
                 return { messages: [response] };
             })
             .addNode("tools", toolNode)
@@ -154,4 +150,6 @@ app.post("/api/data", async (req, res) => {
         return res.json({llmResponse: llmResponse, isReject: isReject});
         
 })
+
+
 
